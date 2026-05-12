@@ -1,4 +1,5 @@
 import os
+import shutil
 import sys
 import threading
 import time
@@ -51,12 +52,30 @@ def prepare_config() -> Path:
     return config_path
 
 
+def sync_bundled_assets(base_dir: Path | None = None, data_dir: Path | None = None) -> None:
+    source_root = base_dir or bundled_base_dir()
+    target_root = data_dir or user_data_dir()
+
+    for directory_name in ("extension", "docs"):
+        source_dir = source_root / directory_name
+        target_dir = target_root / directory_name
+        if source_dir.exists():
+            if target_dir.exists():
+                shutil.rmtree(target_dir)
+            shutil.copytree(source_dir, target_dir)
+
+    readme = source_root / "README.md"
+    if readme.exists():
+        shutil.copy2(readme, target_root / "README.md")
+
+
 def open_dashboard_later() -> None:
     time.sleep(1.2)
     webbrowser.open(f"http://{HOST}:{PORT}")
 
 
 def main() -> None:
+    sync_bundled_assets()
     config_path = prepare_config()
     threading.Thread(target=open_dashboard_later, daemon=True).start()
     run_server(str(config_path), HOST, PORT)

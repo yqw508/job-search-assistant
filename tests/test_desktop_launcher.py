@@ -1,6 +1,6 @@
 import yaml
 
-from boss_job_assistant.desktop_launcher import prepare_config
+from boss_job_assistant.desktop_launcher import prepare_config, sync_bundled_assets
 
 
 def test_prepare_config_creates_user_writable_runtime_config(tmp_path, monkeypatch):
@@ -25,3 +25,19 @@ def test_prepare_config_keeps_existing_user_config(tmp_path, monkeypatch):
 
     assert prepare_config() == config_path
     assert "custom.sqlite3" in config_path.read_text(encoding="utf-8")
+
+
+def test_sync_bundled_assets_extracts_extension_and_docs(tmp_path):
+    bundled = tmp_path / "bundle"
+    data_dir = tmp_path / "data"
+    (bundled / "extension").mkdir(parents=True)
+    (bundled / "docs").mkdir()
+    (bundled / "extension" / "manifest.json").write_text("{}", encoding="utf-8")
+    (bundled / "docs" / "packaging.md").write_text("docs", encoding="utf-8")
+    (bundled / "README.md").write_text("readme", encoding="utf-8")
+
+    sync_bundled_assets(bundled, data_dir)
+
+    assert (data_dir / "extension" / "manifest.json").read_text(encoding="utf-8") == "{}"
+    assert (data_dir / "docs" / "packaging.md").read_text(encoding="utf-8") == "docs"
+    assert (data_dir / "README.md").read_text(encoding="utf-8") == "readme"

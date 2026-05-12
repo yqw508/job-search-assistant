@@ -9,7 +9,7 @@ set "LOG_FILE=%CD%\%LOG_DIR%\package_windows.log"
 if /i "%~1"=="--inner" goto :main
 
 if not exist "%LOG_DIR%" mkdir "%LOG_DIR%"
-echo Building Windows package. Log file:
+echo Building Windows single-file exe. Log file:
 echo %LOG_FILE%
 echo.
 
@@ -23,6 +23,7 @@ if not "%EXIT_CODE%"=="0" (
     echo Log file: %LOG_FILE%
 ) else (
     echo Package build succeeded.
+    echo App exe: %CD%\dist\JobSearchAssistant.exe
     echo Log file: %LOG_FILE%
 )
 
@@ -32,11 +33,10 @@ exit /b %EXIT_CODE%
 :main
 set "APP_NAME=JobSearchAssistant"
 set "DIST_ROOT=dist"
-set "RELEASE_DIR=%DIST_ROOT%\%APP_NAME%"
-set "EXE_NAME=job-search-assistant.exe"
+set "APP_EXE=%DIST_ROOT%\%APP_NAME%.exe"
 set "PYTHONPATH=%CD%\src;%PYTHONPATH%"
 
-echo [1/6] Checking Python...
+echo [1/5] Checking Python...
 python --version >nul 2>&1
 if errorlevel 1 (
     echo Python was not found. Please install Python 3.10+ and add it to PATH.
@@ -44,7 +44,7 @@ if errorlevel 1 (
 )
 python --version
 
-echo [2/6] Installing build dependencies...
+echo [2/5] Installing build dependencies...
 python -m pip install -r requirements-build.txt
 if errorlevel 1 (
     echo Default pip source failed. Retrying PyInstaller from official PyPI with user install...
@@ -55,52 +55,40 @@ if errorlevel 1 (
     )
 )
 
-echo [3/6] Cleaning previous package output...
+echo [3/5] Cleaning previous package output...
 if exist build\pyinstaller rmdir /s /q build\pyinstaller
-if exist "%RELEASE_DIR%" rmdir /s /q "%RELEASE_DIR%"
-if exist "%DIST_ROOT%\%APP_NAME%.zip" del /q "%DIST_ROOT%\%APP_NAME%.zip"
-if not exist "%RELEASE_DIR%" mkdir "%RELEASE_DIR%"
+if exist "%APP_EXE%" del /q "%APP_EXE%"
+if exist "%DIST_ROOT%\JobSearchAssistantSetup.exe" del /q "%DIST_ROOT%\JobSearchAssistantSetup.exe"
+if not exist "%DIST_ROOT%" mkdir "%DIST_ROOT%"
 
-echo [4/6] Building executable...
+echo [4/5] Building single-file executable...
 python -m PyInstaller ^
   --noconfirm ^
   --clean ^
-  --name job-search-assistant ^
-  --distpath "%RELEASE_DIR%" ^
+  --onefile ^
+  --name "%APP_NAME%" ^
+  --distpath "%DIST_ROOT%" ^
   --workpath build\pyinstaller ^
   --specpath build\pyinstaller ^
   --add-data "%CD%\config.yaml;." ^
+  --add-data "%CD%\extension;extension" ^
+  --add-data "%CD%\docs;docs" ^
+  --add-data "%CD%\README.md;." ^
   "%CD%\src\boss_job_assistant\desktop_launcher.py"
 if errorlevel 1 (
     echo PyInstaller build failed.
     exit /b 1
 )
 
-echo [5/6] Copying release files...
-xcopy /e /i /y extension "%RELEASE_DIR%\extension" >nul
-if errorlevel 1 exit /b 1
-xcopy /e /i /y docs "%RELEASE_DIR%\docs" >nul
-if errorlevel 1 exit /b 1
-copy /y README.md "%RELEASE_DIR%\README.md" >nul
-if errorlevel 1 exit /b 1
-copy /y config.yaml "%RELEASE_DIR%\config.yaml" >nul
-if errorlevel 1 exit /b 1
-
-echo [6/6] Creating portable zip...
-powershell -NoProfile -ExecutionPolicy Bypass -Command "Compress-Archive -Path '%RELEASE_DIR%\*' -DestinationPath '%DIST_ROOT%\%APP_NAME%.zip' -Force"
-if errorlevel 1 (
-    echo Failed to create portable zip.
-    exit /b 1
-)
-
+echo [5/5] Checking optional installer builder...
 where ISCC >nul 2>&1
 if not errorlevel 1 (
     echo Building installer with Inno Setup...
     ISCC installer\inno\job-search-assistant.iss
     if errorlevel 1 exit /b 1
 ) else (
-    echo Inno Setup was not found. Portable package is ready:
-    echo %CD%\%DIST_ROOT%\%APP_NAME%.zip
+    echo Inno Setup was not found. Single-file app exe is ready:
+    echo %CD%\%APP_EXE%
     echo To build Setup.exe, install Inno Setup and run this script again.
 )
 

@@ -135,13 +135,14 @@ node tests\extension\popup_static_test.js
 
 ## 打包给朋友使用
 
-可以生成 Windows 便携包或安装包：
+可以生成一个可直接发给朋友的 Windows 单文件 exe：
 
 ```powershell
 .\scripts\package_windows.bat
 ```
 
-脚本会用 PyInstaller 把本地服务打成 exe，并生成 `dist/JobSearchAssistant.zip`。如果电脑上安装了 Inno Setup，还会继续生成 `dist/JobSearchAssistantSetup.exe`。
+脚本会用 PyInstaller 生成 `dist/JobSearchAssistant.exe`。朋友拿到这个 exe 后直接双击即可启动本地后台；首次启动时会自动把浏览器扩展文件释放到用户目录。  
+如果电脑上安装了 Inno Setup，还会继续生成 `dist/JobSearchAssistantSetup.exe`。
 如果双击脚本执行，窗口会在结束时停住；完整日志在 `build\logs\package_windows.log`。
 
 安装版启动后会自动打开本地后台，数据保存在 `%LOCALAPPDATA%\JobSearchAssistant`。浏览器扩展仍需要用户按提示手动加载，这是 Chrome/Edge 的安全限制。
