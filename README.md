@@ -18,6 +18,8 @@
 
 ![求职助手核心闭环演示](docs/assets/product-loop-demo.gif)
 
+需要通过微信分享时，可以使用 [MP4 视频版](docs/assets/product-loop-demo.mp4)。
+
 ## 主要功能
 
 - 收藏岗位：用浏览器扩展读取当前打开的岗位详情，保存到本地库。
