@@ -1,0 +1,29 @@
+{
+  "manifest_version": 3,
+  "name": "Boss 岗位助手",
+  "version": "0.1.0",
+  "description": "采集当前 Boss 搜索页岗位并发送到本地服务导出 Excel。",
+  "permissions": [
+    "activeTab",
+    "scripting"
+  ],
+  "host_permissions": [
+    "https://www.zhipin.com/*",
+    "http://127.0.0.1:8765/*"
+  ],
+  "action": {
+    "default_title": "Boss 岗位助手",
+    "default_popup": "popup.html"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://www.zhipin.com/*"
+      ],
+      "js": [
+        "content.js"
+      ],
+      "run_at": "document_idle"
+    }
+  ]
+}

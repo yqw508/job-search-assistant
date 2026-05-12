@@ -1,0 +1,49 @@
+search:
+  keyword: "Java Spring Boot"
+  city: "广州"
+  city_code: "101280100"
+  max_pages: 2
+  detail_pages: true
+  manual_start: true
+
+filters:
+  min_salary_k: 22
+  min_company_size: 100
+  required_location: "广州"
+
+scoring:
+  positive_keywords:
+    - "Java"
+    - "Spring Boot"
+    - "SpringCloud"
+    - "Spring Cloud"
+    - "微服务"
+    - "Redis"
+    - "MySQL"
+    - "MQ"
+    - "高并发"
+  c_side_keywords:
+    - "C端"
+    - "C 端"
+    - "App"
+    - "小程序"
+    - "电商"
+    - "交易"
+    - "支付"
+    - "会员"
+    - "用户增长"
+    - "内容"
+    - "社区"
+  exclude_keywords:
+    - "外包"
+    - "驻场"
+    - "派遣"
+    - "外派"
+    - "银行外包"
+    - "项目外包"
+    - "短期项目"
+
+runtime:
+  min_delay_seconds: 2
+  max_delay_seconds: 5
+  output_dir: "output"
