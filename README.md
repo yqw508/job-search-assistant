@@ -1,166 +1,118 @@
 # 求职助手
 
-一个本地个人求职工作台，用来长期保存岗位、沉淀技能点、记录面试并反推学习补齐。当前第一期支持 Boss，后续可以继续接入猎聘、拉勾、智联、前程无忧或手动录入。
+一个本地运行的个人求职工作台。它不是单纯的爬虫，也不是一次性导出 Excel 的小工具，而是帮助你把“看岗位、收藏岗位、沉淀技能、记录面试、补齐短板”这件事长期管理起来。
 
-核心闭环：
+当前第一期支持从 Boss 采集岗位，后续可以继续接入猎聘、拉勾、智联、前程无忧或手动录入。无论岗位来自哪里，进入本地库后都会进入同一套匹配分析、技能提炼、项目经验和面试复盘流程。
 
-```text
-岗位收集 -> 技能点收集 -> 面试记录 -> 技能点补齐 -> 继续筛选岗位
-```
-
-## 现在能做什么
-
-- 收藏当前来源的岗位，长期保存岗位信息、职位描述、匹配度和跟进状态。
-- 从职位描述里提取技能点，形成自己的技能库。
-- 维护项目经验，把项目和技能点关联起来。
-- 记录每次面试，把面试问题关联到技能点。
-- 自动统计被问最多、答得不好的技能，用来指导后续学习和项目表达。
-- 在本地后台管理岗位列表、岗位详情、技能库、项目经验、面试记录和匹配配置。
-
-## 安全边界
-
-本项目不会批量打开岗位详情页，也不会循环点击 Boss 页面。扩展只读取当前页面已经展示出来的岗位内容，再发送给本机服务。
-
-这意味着你仍然需要自己判断哪些岗位值得收藏。程序负责长期保存、整理、评分和复盘。
-
-## 快速开始
-
-### 1. 准备环境
-
-- Windows
-- Python 3.10 或更新版本
-- Chrome 或 Edge
-
-### 2. 启动本地服务
-
-在项目目录双击或执行：
-
-```powershell
-.\start_service.bat
-```
-
-脚本会自动检查 Python、pip 和依赖包。启动成功后打开：
+## 核心闭环
 
 ```text
-http://127.0.0.1:8765
+岗位收集 -> 匹配分析 -> 技能点沉淀 -> 面试记录 -> 技能短板复盘 -> 项目经验补齐 -> 继续筛选岗位
 ```
 
-默认数据库位置：
+这个工具更适合想认真换工作、需要长期跟踪多个岗位的人：看到合适岗位时收藏下来，后面可以持续维护投递状态、面试情况、被问到的技能点，以及哪些能力还需要补。
+
+## 产品截图
+
+### 求职总览
+
+首页展示适合岗位、强匹配岗位、待投递、已投递、面试中和面试转化率，方便你快速判断当前求职进度。
+
+![求职总览](docs/assets/screenshot-dashboard.png)
+
+### 岗位列表
+
+列表页支持筛选、排序和分页。岗位会按匹配度、状态、薪资、地点、公司规模等信息集中展示，不再散落在浏览器标签页和临时 Excel 里。
+
+![岗位列表](docs/assets/screenshot-jobs.png)
+
+### 岗位详情
+
+详情页展示职位描述、匹配项、风险项、技能标签和面试记录入口。最低薪资匹配会按薪资上限判断，例如 `12-24K` 会用 `24K` 参与匹配。
+
+![岗位详情](docs/assets/screenshot-job-detail.png)
+
+### 技能库
+
+系统会从岗位描述和面试问题里沉淀技能点，统计技能出现频次、关联岗位和项目证据，帮助你判断哪些技能最值得补。
+
+![技能库](docs/assets/screenshot-skills.png)
+
+### 面试记录
+
+每次面试可以记录轮次、形式、结果、问题、回答表现和关联技能点。后续可以统计哪些技能被问得最多、哪些答得不够好。
+
+![面试记录](docs/assets/screenshot-interviews.png)
+
+## 主要功能
+
+- 收藏岗位：用浏览器扩展读取当前打开的岗位详情，保存到本地库。
+- 匹配分析：根据薪资、地点、公司规模、技术关键词、C 端经验、外包风险等规则打分。
+- 岗位跟踪：维护待投递、已投递、面试中、已面试、Offer、淘汰、不合适等状态。
+- 技能沉淀：从职位描述、加分项、优先录用和面试问题里提炼技能标签。
+- 项目经验：记录能支撑技能点的项目，把“我会什么”和“我做过什么”连起来。
+- 面试复盘：记录每次面试和问题表现，反向找出薄弱技能。
+- 本地保存：数据默认保存在本机 SQLite，不上传到远端服务。
+
+## 如何使用
+
+### 方式一：使用 Windows 单文件程序
+
+适合普通用户。拿到 `JobSearchAssistant.exe` 后双击运行，它会启动本地后台并打开浏览器页面。
+
+首次使用还需要在 Chrome 或 Edge 里加载扩展：
+
+1. 打开浏览器扩展管理页。
+2. 开启“开发者模式”。
+3. 选择“加载已解压的扩展程序”。
+4. 选择 `%LOCALAPPDATA%\JobSearchAssistant\extension`。
+5. 工具栏出现“求职助手”后，就可以在岗位详情页点击收藏。
+
+### 收藏一个岗位
+
+1. 用平时的浏览器正常打开招聘网站。
+2. 当前第一期在 Boss 上手动打开一个感兴趣的岗位详情。
+3. 点击浏览器扩展里的“收藏当前岗位”。
+4. 回到 `http://127.0.0.1:8765` 查看岗位、匹配分析和后续跟进。
+
+## 当前边界
+
+为了避免触发招聘平台风控，本项目不做自动批量打开岗位、不循环点击详情页、不自动投递，也不接管浏览器。扩展只读取你当前已经手动打开并展示出来的岗位内容。
+
+当前只实现 Boss 数据源，但内部已经按多来源预留：岗位唯一键使用 `source:source_job_id`，后续接入其他招聘网站时，只需要新增来源适配器，把页面数据转换成统一岗位字段。
+
+## 数据位置
+
+普通 exe 运行时，数据和配置默认放在：
+
+```text
+%LOCALAPPDATA%\JobSearchAssistant
+```
+
+开发模式下默认数据库为：
 
 ```text
 output/boss_jobs.sqlite3
 ```
 
-### 3. 加载浏览器扩展
+可以用 Navicat、DB Browser for SQLite 等工具查看 SQLite 数据。
 
-Chrome 或 Edge：
+## 文档
 
-1. 打开扩展管理页面。
-2. 开启“开发者模式”。
-3. 选择“加载已解压的扩展”。
-4. 选择项目里的 `extension` 目录。
-5. 工具栏会出现“求职助手”。
+- [使用指南](docs/user-guide.md)
+- [产品闭环](docs/product-loop.md)
+- [开发说明](docs/development.md)
+- [Windows 打包说明](docs/packaging.md)
+- [用户体验 Review](docs/ux-review.md)
+- [扩展手工测试](docs/extension-manual-test.md)
 
-### 4. 收藏岗位
+## 开发者入口
 
-1. 用平时的浏览器正常打开 Boss。
-2. 手动打开一个感兴趣的岗位详情。
-3. 点击扩展里的“收藏当前岗位”。
-4. 回到 `http://127.0.0.1:8765` 查看岗位和匹配分析。
-
-## 本地后台页面
-
-- `总览`：查看岗位数量、投递和面试状态概览。
-- `岗位列表`：筛选、排序、分页查看已收藏岗位。
-- `岗位详情`：查看职位描述、匹配分析、记录面试。
-- `技能库`：查看从岗位和面试中沉淀的技能点。
-- `项目经验`：维护项目，并关联到技能点。
-- `面试记录`：记录面试轮次、问题、技能点和回答表现。
-- `配置`：维护薪资、地点、公司规模、关键词、通勤等匹配规则。
-
-## 数据库说明
-
-本项目使用 SQLite，本地文件默认在 `output/boss_jobs.sqlite3`。可以用 Navicat 打开。
-
-SQLite 不支持 MySQL 那种原生表注释，所以项目内置了 `schema_comments` 表：
-
-```sql
-SELECT *
-FROM schema_comments
-ORDER BY table_name, object_type, column_name;
-```
-
-## 配置
-
-配置文件是 `config.yaml`。常用项：
-
-```yaml
-filters:
-  min_salary_k: 22
-  min_company_size: 100
-  required_location: 广州
-
-scoring:
-  positive_keywords:
-    - Java
-    - Spring Boot
-    - Redis
-  c_side_keywords:
-    - C端
-    - 用户
-  exclude_keywords:
-    - 外包
-    - 驻场
-```
-
-薪资匹配按薪资范围上限判断。例如最低薪资配置为 `22K` 时，`12-24K` 会被认为满足条件，因为上限是 `24K`。
-
-## 开发与测试
-
-安装开发依赖：
+开发和测试命令放在 [开发说明](docs/development.md) 里。日常开发一般会用到：
 
 ```powershell
 python -m pip install -r requirements-dev.txt
-```
-
-运行测试：
-
-```powershell
 python -m pytest -v
-node --check extension\content.js
-node --check extension\popup.js
 node tests\extension\content_parser_test.js
 node tests\extension\popup_static_test.js
 ```
-
-## 打包给朋友使用
-
-可以生成一个可直接发给朋友的 Windows 单文件 exe：
-
-```powershell
-.\scripts\package_windows.bat
-```
-
-脚本会用 PyInstaller 生成 `dist/JobSearchAssistant.exe`。朋友拿到这个 exe 后直接双击即可启动本地后台；首次启动时会自动把浏览器扩展文件释放到用户目录。  
-如果电脑上安装了 Inno Setup，还会继续生成 `dist/JobSearchAssistantSetup.exe`。
-如果双击脚本执行，窗口会在结束时停住；完整日志在 `build\logs\package_windows.log`。
-
-安装版启动后会自动打开本地后台，数据保存在 `%LOCALAPPDATA%\JobSearchAssistant`。浏览器扩展仍需要用户按提示手动加载，这是 Chrome/Edge 的安全限制。
-
-更详细的构建说明见 [Windows 安装包构建说明](docs/packaging.md)。
-
-## 多招聘网站预留
-
-当前只实现 Boss 采集，但数据层已经按多来源设计：岗位唯一键为 `source:source_job_id`，例如 `boss:https://www.zhipin.com/job_detail/xxx.html`。后续接入猎聘、拉勾、智联、前程无忧或手动录入时，只需要新增对应来源适配器，把页面数据转换成统一的岗位字段，再交给本地服务保存。
-
-旧版直接用 Boss URL 做唯一键的数据会在启动时自动迁移为 `boss:<标准化岗位详情 URL>`，避免列表页和详情页保存成两条记录。
-
-## 项目文档
-
-- [用户指南](docs/user-guide.md)
-- [开发指南](docs/development.md)
-- [Windows 安装包构建说明](docs/packaging.md)
-- [产品闭环与路线图](docs/product-loop.md)
-- [用户体验 Review](docs/ux-review.md)
-- [扩展手工验证清单](docs/extension-manual-test.md)
- 

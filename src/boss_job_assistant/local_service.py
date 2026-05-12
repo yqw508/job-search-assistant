@@ -619,7 +619,7 @@ def _html_settings_page(config: dict[str, Any]) -> str:
 <body>
   <div class="app-shell">
     <aside class="sidebar">
-      <div class="brand">Boss 职位助手</div>
+      <div class="brand">求职助手</div>
       <nav class="side-nav">{_sidebar_nav("settings")}</nav>
     </aside>
     <div class="content">
@@ -730,7 +730,7 @@ def _html_dashboard_page(jobs: list[dict[str, Any]]) -> str:
 <body>
   <div class="app-shell">
     <aside class="sidebar">
-      <div class="brand">Boss 职位助手</div>
+      <div class="brand">求职助手</div>
       <nav class="side-nav">{_sidebar_nav("dashboard")}</nav>
     </aside>
     <div class="content">
@@ -904,7 +904,7 @@ def _html_jobs_page(jobs: list[dict[str, Any]], config: dict[str, Any]) -> str:
 <body>
   <div class="app-shell">
     <aside class="sidebar">
-      <div class="brand">Boss 职位助手</div>
+      <div class="brand">求职助手</div>
       <nav class="side-nav">{_sidebar_nav("jobs")}</nav>
     </aside>
     <div class="content">
@@ -1142,7 +1142,7 @@ def _html_skills_page(skills: list[dict[str, Any]]) -> str:
 <body>
   <div class="app-shell">
     <aside class="sidebar">
-      <div class="brand">Boss 职位助手</div>
+      <div class="brand">求职助手</div>
       <nav class="side-nav">{_sidebar_nav("skills")}</nav>
     </aside>
     <div class="content">
@@ -1256,7 +1256,7 @@ def _html_skill_detail_page(skill: dict[str, Any] | None) -> str:
 <body>
   <div class="app-shell">
     <aside class="sidebar">
-      <div class="brand">Boss 职位助手</div>
+      <div class="brand">求职助手</div>
       <nav class="side-nav">{_sidebar_nav("skills")}</nav>
     </aside>
     <div class="content">
@@ -1379,7 +1379,7 @@ def _html_projects_page(projects: list[dict[str, Any]], skills: list[dict[str, A
 <body>
   <div class="app-shell">
     <aside class="sidebar">
-      <div class="brand">Boss 职位助手</div>
+      <div class="brand">求职助手</div>
       <nav class="side-nav">{_sidebar_nav("projects")}</nav>
     </aside>
     <div class="content">
@@ -1677,7 +1677,7 @@ def _html_interviews_page(
 <body>
   <div class="app-shell">
     <aside class="sidebar">
-      <div class="brand">Boss 岗位助手</div>
+      <div class="brand">求职助手</div>
       <nav class="side-nav">{_sidebar_nav("interviews")}</nav>
     </aside>
     <div class="content">
@@ -1825,7 +1825,7 @@ def _html_job_detail_page(
 <body>
   <div class="app-shell">
     <aside class="sidebar">
-      <div class="brand">Boss 职位助手</div>
+      <div class="brand">求职助手</div>
       <nav class="side-nav">{_sidebar_nav("jobs")}</nav>
     </aside>
     <div class="content">
