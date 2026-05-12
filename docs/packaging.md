@@ -22,6 +22,19 @@
 .\scripts\package_windows.bat
 ```
 
+脚本会把完整输出写入：
+
+```text
+build\logs\package_windows.log
+```
+
+如果双击运行，窗口会在结束时停住，方便查看错误。自动化构建时可以关闭停留：
+
+```powershell
+$env:PACKAGE_NO_PAUSE=1
+.\scripts\package_windows.bat
+```
+
 脚本会执行：
 
 1. 检查 Python。

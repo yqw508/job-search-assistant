@@ -142,6 +142,7 @@ node tests\extension\popup_static_test.js
 ```
 
 脚本会用 PyInstaller 把本地服务打成 exe，并生成 `dist/JobSearchAssistant.zip`。如果电脑上安装了 Inno Setup，还会继续生成 `dist/JobSearchAssistantSetup.exe`。
+如果双击脚本执行，窗口会在结束时停住；完整日志在 `build\logs\package_windows.log`。
 
 安装版启动后会自动打开本地后台，数据保存在 `%LOCALAPPDATA%\JobSearchAssistant`。浏览器扩展仍需要用户按提示手动加载，这是 Chrome/Edge 的安全限制。
 
