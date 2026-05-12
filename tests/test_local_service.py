@@ -159,7 +159,7 @@ def test_handler_health_returns_json():
         status, _, payload = request(port, "GET", "/health")
 
     assert status == 200
-    assert payload == {"ok": True, "service": "boss-job-assistant"}
+    assert payload == {"ok": True, "service": "job-search-assistant"}
 
 
 def test_handler_unknown_path_returns_404(tmp_path):

@@ -3,6 +3,8 @@ __pycache__/
 .pytest_cache/
 .pytest-tmp/
 .tmp/
+build/
+dist/
 .venv/
 venv/
 env/

@@ -1931,7 +1931,7 @@ class LocalServiceHandler(BaseHTTPRequestHandler):
     def do_GET(self) -> None:
         parsed = urlparse(self.path)
         if parsed.path == "/health":
-            self._write_json({"ok": True, "service": "boss-job-assistant"})
+            self._write_json({"ok": True, "service": "job-search-assistant"})
             return
 
         try:
@@ -2106,7 +2106,7 @@ def run_server(config_path: str = "config.yaml", host: str = HOST, port: int = P
     config = load_config(config_path)
     init_db(get_db_path(config))
     server = ThreadingHTTPServer((host, port), LocalServiceHandler)
-    print(f"Boss 职位收藏助手本地服务已启动: http://{host}:{port}")
+    print(f"求职助手本地服务已启动: http://{host}:{port}")
     print("插件接口: GET /health, GET /jobs, POST /jobs/save, POST /jobs/unsave")
     server.serve_forever()
 

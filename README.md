@@ -133,6 +133,20 @@ node tests\extension\content_parser_test.js
 node tests\extension\popup_static_test.js
 ```
 
+## 打包给朋友使用
+
+可以生成 Windows 便携包或安装包：
+
+```powershell
+.\scripts\package_windows.bat
+```
+
+脚本会用 PyInstaller 把本地服务打成 exe，并生成 `dist/JobSearchAssistant.zip`。如果电脑上安装了 Inno Setup，还会继续生成 `dist/JobSearchAssistantSetup.exe`。
+
+安装版启动后会自动打开本地后台，数据保存在 `%LOCALAPPDATA%\JobSearchAssistant`。浏览器扩展仍需要用户按提示手动加载，这是 Chrome/Edge 的安全限制。
+
+更详细的构建说明见 [Windows 安装包构建说明](docs/packaging.md)。
+
 ## 多招聘网站预留
 
 当前只实现 Boss 采集，但数据层已经按多来源设计：岗位唯一键为 `source:source_job_id`，例如 `boss:https://www.zhipin.com/job_detail/xxx.html`。后续接入猎聘、拉勾、智联、前程无忧或手动录入时，只需要新增对应来源适配器，把页面数据转换成统一的岗位字段，再交给本地服务保存。
@@ -143,6 +157,7 @@ node tests\extension\popup_static_test.js
 
 - [用户指南](docs/user-guide.md)
 - [开发指南](docs/development.md)
+- [Windows 安装包构建说明](docs/packaging.md)
 - [产品闭环与路线图](docs/product-loop.md)
 - [用户体验 Review](docs/ux-review.md)
 - [扩展手工验证清单](docs/extension-manual-test.md)
