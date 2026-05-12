@@ -25,6 +25,36 @@ def parse_salary_lower_bound(salary: str) -> int:
     return 0
 
 
+def parse_salary_upper_bound(salary: str) -> int:
+    salary_text = str(salary or "")
+    number_pattern = r"(\d+(?:\.\d+)?)"
+
+    wan_range = re.search(
+        rf"{number_pattern}\s*(?:万|æ¶“\?)?\s*[-~—–]\s*{number_pattern}\s*(?:万|æ¶“\?)",
+        salary_text,
+    )
+    if wan_range:
+        return int(float(wan_range.group(2)) * 10)
+
+    wan_single = re.search(rf"{number_pattern}\s*(?:万|æ¶“\?)", salary_text)
+    if wan_single:
+        return int(float(wan_single.group(1)) * 10)
+
+    k_range = re.search(
+        rf"{number_pattern}\s*K?\s*[-~—–]\s*{number_pattern}\s*K",
+        salary_text,
+        re.IGNORECASE,
+    )
+    if k_range:
+        return int(float(k_range.group(2)))
+
+    k_single = re.search(rf"{number_pattern}\s*K", salary_text, re.IGNORECASE)
+    if k_single:
+        return int(float(k_single.group(1)))
+
+    return 0
+
+
 def parse_company_size(company_size: str) -> int:
     company_size_text = str(company_size or "")
     if not company_size_text or "少于" in company_size_text:
@@ -98,8 +128,8 @@ def score_job(job: JobPosting, config: dict) -> ScoredJob:
         )
 
     min_salary_k = int(filters.get("min_salary_k", 0) or 0)
-    salary_lower_bound = parse_salary_lower_bound(job.salary)
-    if salary_lower_bound < min_salary_k:
+    salary_upper_bound = parse_salary_upper_bound(job.salary)
+    if salary_upper_bound < min_salary_k:
         return ScoredJob(
             job=job,
             matched=False,

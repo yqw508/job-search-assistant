@@ -4,7 +4,7 @@ from typing import Any
 import yaml
 
 
-REQUIRED_SECTIONS = ("search", "filters", "scoring", "runtime")
+REQUIRED_SECTIONS = ("filters", "scoring", "runtime")
 
 
 def load_config(path: str | Path) -> dict[str, Any]:

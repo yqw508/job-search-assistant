@@ -1,11 +1,3 @@
-search:
-  keyword: "Java Spring Boot"
-  city: "广州"
-  city_code: "101280100"
-  max_pages: 2
-  detail_pages: true
-  manual_start: true
-
 filters:
   min_salary_k: 22
   min_company_size: 100
@@ -44,6 +36,10 @@ scoring:
     - "短期项目"
 
 runtime:
-  min_delay_seconds: 2
-  max_delay_seconds: 5
   output_dir: "output"
+
+commute:
+  home_address: ""
+  max_commute_minutes: 60
+  map_provider: "amap"
+  map_api_key: ""

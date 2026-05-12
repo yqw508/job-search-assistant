@@ -1,133 +1,149 @@
-# Boss 岗位助手
+# 求职助手
 
-这是一个本地半自动浏览器助手，用于个人求职时整理 Boss 直聘上可见的岗位信息。程序会打开可见浏览器，由你手动登录，然后按配置搜索岗位、读取列表和详情、按岗位画像评分，最后导出 Excel。
+一个本地个人求职工作台，用来长期保存岗位、沉淀技能点、记录面试并反推学习补齐。当前第一期支持 Boss，后续可以继续接入猎聘、拉勾、智联、前程无忧或手动录入。
 
-## 边界
+核心闭环：
 
-- 不保存账号密码。
-- 不绕过验证码或平台验证。
-- 不自动投递。
-- 不高频并发采集。
-- 只整理用户登录后正常可见的信息。
-
-## 一键启动
-
-推荐直接运行启动脚本：
-
-```powershell
-.\start.bat
+```text
+岗位收集 -> 技能点收集 -> 面试记录 -> 技能点补齐 -> 继续筛选岗位
 ```
 
-脚本会自动完成这些检查：
+## 现在能做什么
 
-- 检查 Python 是否可用。
-- 检查 pip 是否可用。
-- 检查 `playwright`、`PyYAML`、`openpyxl`、`pytest` 是否安装。
-- 缺少依赖时执行 `python -m pip install -r requirements.txt`。
-- 将 Playwright 浏览器缓存放到项目内的 `.playwright-browsers`。
-- 优先用本机已安装的 Google Chrome 或 Microsoft Edge 启动 CDP 附加模式，减少“自动测试软件控制”提示。
-- 如果没有找到本机 Chrome/Edge，再执行 `python -m playwright install chromium`。
-- 如果默认下载源连接被重置，会自动换备用下载源重试一次。
-- 使用项目内 `.browser-profile` 保存浏览器会话，避免每次都从全新的临时浏览器开始。
-- 设置 `PYTHONPATH=src` 并启动岗位助手。
+- 收藏当前来源的岗位，长期保存岗位信息、职位描述、匹配度和跟进状态。
+- 从职位描述里提取技能点，形成自己的技能库。
+- 维护项目经验，把项目和技能点关联起来。
+- 记录每次面试，把面试问题关联到技能点。
+- 自动统计被问最多、答得不好的技能，用来指导后续学习和项目表达。
+- 在本地后台管理岗位列表、岗位详情、技能库、项目经验、面试记录和匹配配置。
 
-如果网络或代理限制导致 Playwright Chromium 下载失败，可以先安装 Google Chrome 或 Microsoft Edge，然后再次运行 `.\start.bat`，脚本会自动复用本机浏览器。
+## 安全边界
 
-## 如果 Boss 跳到 about:blank
+本项目不会批量打开岗位详情页，也不会循环点击 Boss 页面。扩展只读取当前页面已经展示出来的岗位内容，再发送给本机服务。
 
-如果浏览器打开 Boss 后几秒自动跳回 `about:blank`，说明 Boss 拦截了自动化或远程调试浏览器。此时推荐使用本地 HTML 导入模式：
+这意味着你仍然需要自己判断哪些岗位值得收藏。程序负责长期保存、整理、评分和复盘。
 
-1. 用你平时正常使用的 Chrome 或 Edge 打开 Boss。
-2. 手动搜索岗位，例如 Java Spring Boot、广州。
-3. 等岗位列表出现后，按 `Ctrl+S` 保存网页。
-4. 把保存出来的 `.html` 或 `.htm` 文件放到项目目录的 `input_html` 文件夹。
-5. 运行：
+## 快速开始
+
+### 1. 准备环境
+
+- Windows
+- Python 3.10 或更新版本
+- Chrome 或 Edge
+
+### 2. 启动本地服务
+
+在项目目录双击或执行：
 
 ```powershell
-.\import_html.bat
+.\start_service.bat
 ```
 
-程序会解析 `input_html` 里的 HTML 文件，按 `config.yaml` 评分，并导出 Excel 到 `output/`。
+脚本会自动检查 Python、pip 和依赖包。启动成功后打开：
 
-## 手动安装
-
-```powershell
-python -m pip install -r requirements.txt
-$env:PLAYWRIGHT_BROWSERS_PATH="$PWD\.playwright-browsers"
-python -m playwright install chromium
+```text
+http://127.0.0.1:8765
 ```
 
-如果运行时提示 Chromium 缺失，再执行一次：
+默认数据库位置：
 
-```powershell
-python -m playwright install chromium
+```text
+output/boss_jobs.sqlite3
 ```
 
-## 运行
+### 3. 加载浏览器扩展
 
-在项目根目录运行：
+Chrome 或 Edge：
 
-```powershell
-$env:PYTHONPATH="src"
-$env:PLAYWRIGHT_BROWSERS_PATH="$PWD\.playwright-browsers"
-$env:BOSS_BROWSER_CHANNEL="msedge"
-python -m boss_job_assistant.boss_job_assistant config.yaml
-```
+1. 打开扩展管理页面。
+2. 开启“开发者模式”。
+3. 选择“加载已解压的扩展”。
+4. 选择项目里的 `extension` 目录。
+5. 工具栏会出现“求职助手”。
 
-如果已经执行过可编辑安装：
+### 4. 收藏岗位
 
-```powershell
-pip install -e .
-```
+1. 用平时的浏览器正常打开 Boss。
+2. 手动打开一个感兴趣的岗位详情。
+3. 点击扩展里的“收藏当前岗位”。
+4. 回到 `http://127.0.0.1:8765` 查看岗位和匹配分析。
 
-之后可以直接运行：
+## 本地后台页面
 
-```powershell
-python -m boss_job_assistant.boss_job_assistant config.yaml
+- `总览`：查看岗位数量、投递和面试状态概览。
+- `岗位列表`：筛选、排序、分页查看已收藏岗位。
+- `岗位详情`：查看职位描述、匹配分析、记录面试。
+- `技能库`：查看从岗位和面试中沉淀的技能点。
+- `项目经验`：维护项目，并关联到技能点。
+- `面试记录`：记录面试轮次、问题、技能点和回答表现。
+- `配置`：维护薪资、地点、公司规模、关键词、通勤等匹配规则。
+
+## 数据库说明
+
+本项目使用 SQLite，本地文件默认在 `output/boss_jobs.sqlite3`。可以用 Navicat 打开。
+
+SQLite 不支持 MySQL 那种原生表注释，所以项目内置了 `schema_comments` 表：
+
+```sql
+SELECT *
+FROM schema_comments
+ORDER BY table_name, object_type, column_name;
 ```
 
 ## 配置
 
-主要配置在 `config.yaml`：
+配置文件是 `config.yaml`。常用项：
 
-- `search.keyword`：搜索关键词，默认是 `Java Spring Boot`。
-- `search.city`：城市名称，默认是 `广州`，用于展示和兜底。
-- `search.city_code`：Boss 城市码，广州默认是 `101280100`。
-- `search.max_pages`：最多采集页数，首次建议设为 `1`。
-- `search.detail_pages`：是否进入详情页读取岗位描述。
-- `filters.min_salary_k`：最低薪资下限，单位 K。
-- `filters.min_company_size`：最低公司人数。
-- `filters.required_location`：要求工作地。
-- `scoring.positive_keywords`：技术加分关键词。
-- `scoring.c_side_keywords`：C 端业务加分关键词。
-- `scoring.exclude_keywords`：排除关键词，例如外包、驻场、派遣。
-- `runtime.output_dir`：Excel 输出目录，默认是 `output`。
+```yaml
+filters:
+  min_salary_k: 22
+  min_company_size: 100
+  required_location: 广州
 
-结果会导出到 `output/boss_jobs_*.xlsx`。
-
-## 首次使用建议
-
-首次运行前，建议先把 `search.max_pages` 改成 `1`：
-
-1. 程序打开浏览器后，会在终端打印一个 Boss 搜索地址。
-2. 在浏览器地址栏手动粘贴并打开这个地址。
-3. 手动登录 Boss，并确认页面上已经出现岗位列表。
-4. 回到终端按 Enter，程序开始读取当前页面并导出 Excel。
-5. 确认结果正常后，再逐步增加采集页数。
-
-如果出现验证码或平台验证，请在浏览器中手动处理。程序不会绕过验证。
-
-## 手动验证
-
-```powershell
-python -m pytest -v --basetemp D:\future\.tmp\pytest
+scoring:
+  positive_keywords:
+    - Java
+    - Spring Boot
+    - Redis
+  c_side_keywords:
+    - C端
+    - 用户
+  exclude_keywords:
+    - 外包
+    - 驻场
 ```
 
-真实浏览器端到端验证需要你手动登录 Boss：
+薪资匹配按薪资范围上限判断。例如最低薪资配置为 `22K` 时，`12-24K` 会被认为满足条件，因为上限是 `24K`。
+
+## 开发与测试
+
+安装开发依赖：
 
 ```powershell
-$env:PYTHONPATH="src"
-$env:PLAYWRIGHT_BROWSERS_PATH="$PWD\.playwright-browsers"
-$env:BOSS_BROWSER_CHANNEL="msedge"
-python -m boss_job_assistant.boss_job_assistant config.yaml
+python -m pip install -r requirements-dev.txt
 ```
+
+运行测试：
+
+```powershell
+python -m pytest -v
+node --check extension\content.js
+node --check extension\popup.js
+node tests\extension\content_parser_test.js
+node tests\extension\popup_static_test.js
+```
+
+## 多招聘网站预留
+
+当前只实现 Boss 采集，但数据层已经按多来源设计：岗位唯一键为 `source:source_job_id`，例如 `boss:https://www.zhipin.com/job_detail/xxx.html`。后续接入猎聘、拉勾、智联、前程无忧或手动录入时，只需要新增对应来源适配器，把页面数据转换成统一的岗位字段，再交给本地服务保存。
+
+旧版直接用 Boss URL 做唯一键的数据会在启动时自动迁移为 `boss:<标准化岗位详情 URL>`，避免列表页和详情页保存成两条记录。
+
+## 项目文档
+
+- [用户指南](docs/user-guide.md)
+- [开发指南](docs/development.md)
+- [产品闭环与路线图](docs/product-loop.md)
+- [用户体验 Review](docs/ux-review.md)
+- [扩展手工验证清单](docs/extension-manual-test.md)
+ 

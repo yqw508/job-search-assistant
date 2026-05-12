@@ -1,5 +1,10 @@
 from boss_job_assistant.models import JobPosting
-from boss_job_assistant.scorer import parse_company_size, parse_salary_lower_bound, score_job
+from boss_job_assistant.scorer import (
+    parse_company_size,
+    parse_salary_lower_bound,
+    parse_salary_upper_bound,
+    score_job,
+)
 
 
 CONFIG = {
@@ -24,6 +29,29 @@ def test_parse_salary_lower_bound():
     assert parse_salary_lower_bound("1.5-2万") == 15
     assert parse_salary_lower_bound("1.8万-2.5万") == 18
     assert parse_salary_lower_bound("薪资面议") == 0
+
+
+def test_parse_salary_upper_bound():
+    assert parse_salary_upper_bound("12-24K") == 24
+    assert parse_salary_upper_bound("25K-35K") == 35
+    assert parse_salary_upper_bound("2-3万") == 30
+    assert parse_salary_upper_bound("1.8万-2.5万") == 25
+    assert parse_salary_upper_bound("22K以上") == 22
+    assert parse_salary_upper_bound("薪资面议") == 0
+
+
+def test_score_job_accepts_when_salary_upper_bound_meets_threshold():
+    job = JobPosting(
+        title="Java 后端开发工程师",
+        salary="12-24K",
+        location="广州",
+        company_size="100-499人",
+        description="Java Spring Boot C端业务开发。",
+    )
+
+    scored_job = score_job(job, CONFIG)
+
+    assert scored_job.matched is True
 
 
 def test_parse_company_size():

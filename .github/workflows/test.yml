@@ -1,0 +1,36 @@
+name: Test
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Install Python dependencies
+        run: python -m pip install -r requirements-dev.txt
+
+      - name: Run Python tests
+        run: python -m pytest -v
+
+      - name: Check extension JavaScript
+        run: |
+          node --check extension\content.js
+          node --check extension\popup.js
+          node tests\extension\content_parser_test.js
+          node tests\extension\popup_static_test.js

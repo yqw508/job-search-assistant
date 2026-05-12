@@ -1,31 +1,21 @@
-.env
-.env.*
-!.env.example
-
 __pycache__/
 *.py[cod]
 .pytest_cache/
 .pytest-tmp/
-.pytest-tmp-review/
 .tmp/
-
 .venv/
 venv/
 env/
 
+output/
+input_html/
 .browser-profile/
 .browser-profile-cdp/
 .playwright-browsers/
 
-output/
-downloads/
-data/
-logs/
-*.log
-
 *.xlsx
-*.xls
-*.csv
+*.sqlite3
+*.db
 
 .DS_Store
 Thumbs.db

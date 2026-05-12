@@ -12,6 +12,9 @@ class JobPosting:
     industry: str = ""
     financing: str = ""
     company_size: str = ""
+    source: str = "boss"
+    source_job_id: str = ""
+    source_url: str = ""
     url: str = ""
     description: str = ""
 

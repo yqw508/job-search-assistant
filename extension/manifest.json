@@ -1,24 +1,26 @@
 {
   "manifest_version": 3,
-  "name": "Boss 岗位助手",
-  "version": "0.1.0",
-  "description": "采集当前 Boss 搜索页岗位并发送到本地服务导出 Excel。",
+  "name": "求职助手",
+  "version": "0.2.0",
+  "description": "本地求职工作台。当前支持手动收藏 Boss 岗位，保存到本地 SQLite，并跟踪匹配度、技能点和面试状态。",
   "permissions": [
     "activeTab",
     "scripting"
   ],
   "host_permissions": [
-    "https://www.zhipin.com/*",
+    "https://zhipin.com/*",
+    "https://*.zhipin.com/*",
     "http://127.0.0.1:8765/*"
   ],
   "action": {
-    "default_title": "Boss 岗位助手",
+    "default_title": "求职助手",
     "default_popup": "popup.html"
   },
   "content_scripts": [
     {
       "matches": [
-        "https://www.zhipin.com/*"
+        "https://zhipin.com/*",
+        "https://*.zhipin.com/*"
       ],
       "js": [
         "content.js"
