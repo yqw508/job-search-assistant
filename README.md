@@ -97,6 +97,37 @@ output/boss_jobs.sqlite3
 
 可以用 Navicat、DB Browser for SQLite 等工具查看 SQLite 数据。
 
+## 项目目录
+
+常用目录说明：
+
+```text
+src/          本地服务、SQLite 存储、匹配评分、桌面启动器
+extension/    Chrome / Edge 扩展，负责读取当前岗位页面
+docs/         使用说明、产品闭环、打包说明和产品截图
+tests/        后端测试和扩展解析测试
+scripts/      启动、打包、清理等脚本
+installer/    Windows 安装包配置
+```
+
+本地运行时还会出现一些不会提交到 GitHub 的目录：
+
+```text
+dist/         打包后的 exe，发给朋友时主要用这里的文件
+build/        打包中间产物，可清理
+output/       开发模式下的本地 SQLite 数据库，谨慎删除
+.tmp/         临时测试数据和截图缓存，可清理
+.venv/        本地 Python 虚拟环境，重建成本较高，默认保留
+```
+
+想清理工作区时可以执行：
+
+```powershell
+.\scripts\clean_workspace.bat
+```
+
+默认不会删除 `dist`、`output` 和 `.venv`。如果确实要一起清理，可以显式加参数，例如 `--dist`、`--output`、`--venv` 或 `--all`。
+
 ## 文档
 
 - [使用指南](docs/user-guide.md)
