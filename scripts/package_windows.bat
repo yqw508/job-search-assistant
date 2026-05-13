@@ -36,7 +36,7 @@ set "DIST_ROOT=dist"
 set "APP_EXE=%DIST_ROOT%\%APP_NAME%.exe"
 set "PYTHONPATH=%CD%\src;%PYTHONPATH%"
 
-echo [1/5] Checking Python...
+echo [1/6] Checking Python...
 python --version >nul 2>&1
 if errorlevel 1 (
     echo Python was not found. Please install Python 3.10+ and add it to PATH.
@@ -44,7 +44,7 @@ if errorlevel 1 (
 )
 python --version
 
-echo [2/5] Installing build dependencies...
+echo [2/6] Installing build dependencies...
 python -m pip install -r requirements-build.txt
 if errorlevel 1 (
     echo Default pip source failed. Retrying PyInstaller from official PyPI with user install...
@@ -55,13 +55,38 @@ if errorlevel 1 (
     )
 )
 
-echo [3/5] Cleaning previous package output...
+echo [3/6] Building frontend assets...
+where npm.cmd >nul 2>&1
+if errorlevel 1 (
+    echo npm was not found. Please install Node.js 20+ before packaging the Vue admin UI.
+    exit /b 1
+)
+if not exist frontend\node_modules (
+    pushd frontend
+    call npm.cmd install
+    set "NPM_INSTALL_EXIT=%ERRORLEVEL%"
+    popd
+    if not "%NPM_INSTALL_EXIT%"=="0" (
+        echo npm install failed.
+        exit /b 1
+    )
+)
+pushd frontend
+call npm.cmd run build
+set "NPM_BUILD_EXIT=%ERRORLEVEL%"
+popd
+if not "%NPM_BUILD_EXIT%"=="0" (
+    echo Frontend build failed.
+    exit /b 1
+)
+
+echo [4/6] Cleaning previous package output...
 if exist build\pyinstaller rmdir /s /q build\pyinstaller
 if exist "%APP_EXE%" del /q "%APP_EXE%"
 if exist "%DIST_ROOT%\JobSearchAssistantSetup.exe" del /q "%DIST_ROOT%\JobSearchAssistantSetup.exe"
 if not exist "%DIST_ROOT%" mkdir "%DIST_ROOT%"
 
-echo [4/5] Building single-file executable...
+echo [5/6] Building single-file executable...
 python -m PyInstaller ^
   --noconfirm ^
   --clean ^
@@ -73,6 +98,7 @@ python -m PyInstaller ^
   --add-data "%CD%\config.yaml;." ^
   --add-data "%CD%\extension;extension" ^
   --add-data "%CD%\docs;docs" ^
+  --add-data "%CD%\frontend\dist;frontend\dist" ^
   --add-data "%CD%\README.md;." ^
   "%CD%\src\boss_job_assistant\desktop_launcher.py"
 if errorlevel 1 (
@@ -80,7 +106,7 @@ if errorlevel 1 (
     exit /b 1
 )
 
-echo [5/5] Checking optional installer builder...
+echo [6/6] Checking optional installer builder...
 where ISCC >nul 2>&1
 if not errorlevel 1 (
     echo Building installer with Inno Setup...

@@ -8,6 +8,7 @@ dist/
 .venv/
 venv/
 env/
+node_modules/
 
 output/
 input_html/

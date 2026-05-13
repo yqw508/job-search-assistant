@@ -1,6 +1,8 @@
 import html
 import json
+import mimetypes
 import re
+import sys
 import traceback
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from ipaddress import ip_address
@@ -367,7 +369,7 @@ def _render_match_chart(items: list[dict[str, Any]], compact: bool = False) -> s
 
 def _dashboard_stats(jobs: list[dict[str, Any]]) -> dict[str, int]:
     pending = sum(1 for job in jobs if _safe_str(job.get("tracking_status")) in ("", "未投递"))
-    stats = {
+    return {
         "total": len(jobs),
         "strong": sum(1 for job in jobs if int(job.get("score") or 0) >= 80),
         "matched": sum(1 for job in jobs if job.get("matched")),
@@ -376,7 +378,26 @@ def _dashboard_stats(jobs: list[dict[str, Any]]) -> dict[str, int]:
         "pending": pending,
         "rejected": sum(1 for job in jobs if "淘汰" in _safe_str(job.get("tracking_status"))),
     }
-    return stats
+
+
+def _dashboard_payload(jobs: list[dict[str, Any]]) -> dict[str, Any]:
+    stats = _dashboard_stats(jobs)
+    conversion = int(stats["interviewing"] / max(stats["applied"], 1) * 100) if stats["applied"] else 0
+    return {"ok": True, "stats": {**stats, "conversion": conversion}, "jobs": jobs[:6]}
+
+
+def _frontend_dist_dir() -> Path:
+    if getattr(sys, "frozen", False):
+        return Path(getattr(sys, "_MEIPASS", Path(sys.executable).parent)) / "frontend" / "dist"
+    return Path(__file__).resolve().parents[2] / "frontend" / "dist"
+
+
+def _is_frontend_route(path: str) -> bool:
+    if path.startswith("/api/"):
+        return False
+    if path in {"/", "/jobs", "/skills", "/projects", "/interviews", "/settings"}:
+        return True
+    return path.startswith("/jobs/")
 
 
 def save_job_response(payload: dict[str, Any], config: dict[str, Any]) -> dict[str, Any]:
@@ -1899,6 +1920,38 @@ class LocalServiceHandler(BaseHTTPRequestHandler):
         self._set_headers(status_code, "text/html; charset=utf-8")
         self.wfile.write(data.encode("utf-8"))
 
+    def _write_file(self, path: Path) -> None:
+        content_type = mimetypes.guess_type(str(path))[0] or "application/octet-stream"
+        self._set_headers(200, content_type)
+        with path.open("rb") as file:
+            self.wfile.write(file.read())
+
+    def _serve_frontend(self, parsed_path: str) -> bool:
+        frontend_dir = _frontend_dist_dir()
+        if not frontend_dir.exists():
+            return False
+
+        relative = parsed_path.lstrip("/")
+        requested = (frontend_dir / relative).resolve() if relative else frontend_dir / "index.html"
+        try:
+            requested.relative_to(frontend_dir.resolve())
+        except ValueError:
+            return False
+
+        if requested.is_file():
+            self._write_file(requested)
+            return True
+
+        if _is_frontend_route(parsed_path):
+            index = frontend_dir / "index.html"
+            if index.exists():
+                self._write_file(index)
+                return True
+        return False
+
+    def _accepts_html(self) -> bool:
+        return "text/html" in (self.headers.get("Accept") or "")
+
     def _read_json_payload(self) -> dict[str, Any]:
         content_length_text = self.headers.get("Content-Length", "0") or "0"
         try:
@@ -1937,6 +1990,66 @@ class LocalServiceHandler(BaseHTTPRequestHandler):
         try:
             config = self._load_config()
             db_path = get_db_path(config)
+            if _is_frontend_route(parsed.path) and self._accepts_html() and self._serve_frontend(parsed.path):
+                return
+
+            if parsed.path in {"/api/dashboard", "/dashboard"}:
+                self._write_json(_dashboard_payload(list_saved_jobs(db_path)))
+                return
+
+            if parsed.path == "/api/jobs":
+                query = parse_qs(parsed.query)
+                include_unfavorited = query.get("include_unfavorited", ["0"])[0] == "1"
+                self._write_json({"ok": True, "jobs": list_saved_jobs(db_path, include_unfavorited)})
+                return
+
+            if parsed.path == "/api/jobs/detail":
+                query = parse_qs(parsed.query)
+                key = query.get("job_key", [""])[0]
+                job = get_saved_job(db_path, key) if key else None
+                if not job:
+                    self._write_json({"ok": False, "error": "岗位不存在或已经取消收藏。"}, 404)
+                    return
+                self._write_json(
+                    {
+                        "ok": True,
+                        "job": job,
+                        "interviews": list_interviews(db_path, key),
+                        "skills": list_skills(db_path),
+                        "skill_mentions": get_skill_mentions_for_job(db_path, key),
+                    }
+                )
+                return
+
+            if parsed.path == "/api/skills":
+                self._write_json({"ok": True, "skills": list_skills(db_path)})
+                return
+
+            if parsed.path == "/api/skills/detail":
+                query = parse_qs(parsed.query)
+                name = query.get("name", [""])[0]
+                skill = get_skill_detail(db_path, name) if name else None
+                self._write_json({"ok": bool(skill), "skill": skill}, 200 if skill else 404)
+                return
+
+            if parsed.path == "/api/projects":
+                self._write_json({"ok": True, "projects": list_projects(db_path)})
+                return
+
+            if parsed.path == "/api/interviews":
+                self._write_json(
+                    {
+                        "ok": True,
+                        "interviews": list_interviews(db_path),
+                        "skill_stats": interview_skill_stats(db_path),
+                    }
+                )
+                return
+
+            if parsed.path == "/api/settings":
+                self._write_json({"ok": True, "settings": settings_from_config(config)})
+                return
+
             if parsed.path == "/jobs":
                 query = parse_qs(parsed.query)
                 include_unfavorited = query.get("include_unfavorited", ["0"])[0] == "1"
@@ -2015,7 +2128,12 @@ class LocalServiceHandler(BaseHTTPRequestHandler):
                 return
 
             if parsed.path == "/":
+                if self._accepts_html() and self._serve_frontend(parsed.path):
+                    return
                 self._write_html(_html_dashboard_page(list_saved_jobs(db_path)))
+                return
+
+            if self._serve_frontend(parsed.path):
                 return
         except Exception as exc:  # noqa: BLE001
             print(f"本地服务处理 GET 失败: {exc}")
@@ -2030,13 +2148,14 @@ class LocalServiceHandler(BaseHTTPRequestHandler):
             payload = self._read_json_payload()
             config = self._load_config()
             db_path = get_db_path(config)
+            path = urlparse(self.path).path
 
-            if self.path == "/settings":
+            if path in {"/settings", "/api/settings"}:
                 response = update_settings_response(payload, self.config_path)
                 self._write_json(response, 200)
                 return
 
-            if self.path == "/skills/profile":
+            if path in {"/skills/profile", "/api/skills/profile"}:
                 try:
                     mastery_score = int(payload.get("mastery_score") or 0)
                 except (TypeError, ValueError) as exc:
@@ -2053,33 +2172,33 @@ class LocalServiceHandler(BaseHTTPRequestHandler):
                 self._write_json({"ok": True, "skill": response})
                 return
 
-            if self.path == "/projects":
+            if path in {"/projects", "/api/projects"}:
                 if not _safe_str(payload.get("name")).strip():
                     raise ClientInputError("项目名称不能为空")
                 response = create_project(db_path, payload)
                 self._write_json({"ok": True, "project": response})
                 return
 
-            if self.path == "/interviews":
+            if path in {"/interviews", "/api/interviews"}:
                 if not _safe_str(payload.get("company")).strip() and not _safe_str(payload.get("job_key")).strip():
                     raise ClientInputError("面试记录需要关联岗位或填写公司")
                 response = create_interview(db_path, payload)
                 self._write_json({"ok": True, "interview": response})
                 return
 
-            if self.path == "/jobs/save":
+            if path == "/jobs/save":
                 response = save_job_response(payload, config)
                 self._write_json(response, 200 if response.get("ok") else 400)
                 return
 
-            if self.path == "/jobs/unsave":
+            if path == "/jobs/unsave":
                 key = _request_job_key(payload)
                 if not key:
                     raise ClientInputError("缺少 job_key 或 url")
                 self._write_json({"ok": unsave_job(db_path, key), "job_key": key})
                 return
 
-            if self.path == "/jobs/status":
+            if path in {"/jobs/status", "/api/jobs/status"}:
                 key = _request_job_key(payload)
                 status = _safe_str(payload.get("tracking_status") or payload.get("status"))
                 notes = payload.get("notes")

@@ -10,6 +10,20 @@
 岗位收集 -> 匹配分析 -> 技能点沉淀 -> 面试记录 -> 技能短板复盘 -> 项目经验补齐 -> 继续筛选岗位
 ```
 
+## 前端后台
+
+后台管理界面已迁移为 Vue 3 + Element Plus，源码在 `frontend/`，构建产物在 `frontend/dist/`。
+
+本地开发前端：
+
+```powershell
+cd frontend
+npm.cmd install
+npm.cmd run dev
+```
+
+打包 Windows exe 时，`scripts/package_windows.bat` 会先执行前端构建，再把 `frontend/dist` 一起打进 `dist/JobSearchAssistant.exe`。
+
 这个工具更适合想认真换工作、需要长期跟踪多个岗位的人：看到合适岗位时收藏下来，后面可以持续维护投递状态、面试情况、被问到的技能点，以及哪些能力还需要补。
 
 ## 核心闭环演示
